@@ -7,10 +7,16 @@ helpers do
   end
 end
 
+
+get '/' do
+ redirect '/songs'
+end
+
+
 get '/songs' do
   if session.has_key?(:user_id)
     @songs = Song.all
-    erb:'songs/index'
+    erb :'songs/index'
   else
     redirect '/login'
   end
