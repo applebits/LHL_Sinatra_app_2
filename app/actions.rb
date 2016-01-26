@@ -1,18 +1,75 @@
 # Homepage (Root path)
+require 'pry'
+
+helpers do
+  def current_user
+    @user = User.find(session[:user_id]) if session[:user_id]
+  end
+end
+
 get '/songs' do
-  @songs = Song.all
-  erb:'songs/index'
+  if session.has_key?(:user_id)
+    @songs = Song.all
+    erb:'songs/index'
+  else
+    redirect '/login'
+  end
 end
 
 get '/songs/new' do
-  @song = Song.new
-  erb :'songs/new'
+  if session.has_key?(:user_id)
+    @song = Song.new
+    erb :'songs/new'
+  else
+    redirect '/login'
+  end
 end
 
 get '/songs/:id' do
   @song = Song.find params[:id]
   erb :'songs/show'
 end
+
+get '/login' do
+  erb :login
+end
+
+get '/signup' do
+  erb :signup
+end
+
+get '/logout' do
+  session[:user_id] = nil
+  redirect '/login'
+end
+
+
+post '/login' do
+  username = params[:username]
+  password = params[:password]
+  user = User.find_by(username: username, password: password)
+  if user
+    session[:user_id] = user.id
+    redirect '/songs'
+  else
+    erb :login
+  end
+end
+
+post '/signup' do
+  email = params[:email]
+  username = params[:username]
+  password = params[:password]
+
+  user = User.new(email: email, username: username, password: password)
+  if user.save
+    session[:user_id] = user.id
+    redirect '/songs'
+  else
+    erb :signup
+  end
+end
+
 
 post '/songs' do
   @song = Song.new(
